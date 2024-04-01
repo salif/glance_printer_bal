@@ -7,30 +7,30 @@ import glam/doc.{type Document}
 /// The indent for nesting is always 2 spaces, so we don't
 /// need to keep typing it all the time.
 pub fn nest(input: Document) -> Document {
-  doc.nest(input, by: 2)
+   doc.nest(input, by: 2)
 }
 
 /// A comma that only prints when the 
 /// group is broken
 pub fn trailing_comma() -> Document {
-  doc.break("", ",")
+   doc.break("", ",")
 }
 
 /// A non breaking space
 pub fn nbsp() -> Document {
-  doc.from_string(" ")
+   doc.from_string(" ")
 }
 
 /// Take a list of documents, separate them with commas, and wrap
 /// them in parentheses. Provides a trailing comma on breaking.
 pub fn comma_separated_in_parentheses(arguments: List(Document)) -> Document {
-  let comma_separated_arguments =
-    arguments
-    |> doc.concat_join([doc.from_string(","), doc.space])
+   let comma_separated_arguments =
+      arguments
+      |> doc.concat_join([doc.from_string(","), doc.space])
 
-  doc.concat([doc.from_string("("), doc.soft_break])
-  |> doc.append(comma_separated_arguments)
-  |> nest
-  |> doc.append_docs([trailing_comma(), doc.from_string(")")])
-  |> doc.group
+   doc.concat([doc.from_string("("), doc.soft_break])
+   |> doc.append(comma_separated_arguments)
+   |> nest
+   |> doc.append_docs([trailing_comma(), doc.from_string(")")])
+   |> doc.group
 }
