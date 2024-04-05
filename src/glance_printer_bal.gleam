@@ -8,6 +8,10 @@ import glance_printer_bal/internal/doc_extras.{
 }
 import gleam/int
 
+pub fn src(src: String) {
+   g.module(src)
+}
+
 /// Pretty print a glance module
 pub fn print(module module: g.Module) -> String {
    let g.Module(

@@ -14,5 +14,7 @@ repository = {type = "codeberg", user = "salif", repo = "glance_printer_bal"}
 glam = "~> 1.0"
 glance = "~> 0.8.1"
 gleam_stdlib = "~> 0.34 or ~> 1.0"
+testbldr = "~> 1.1"
+simplifile = "~> 1.6"
 
 [dev-dependencies]
