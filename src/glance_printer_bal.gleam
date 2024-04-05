@@ -1,24 +1,7 @@
 import gleam/list
 import gleam/string
 import gleam/option.{type Option, None, Some}
-import glance.{
-   type AssignmentName, type Attribute, type BinaryOperator, type BitStringSegmentOption,
-   type Constant, type CustomType, type Definition, type Expression, type Field, type FnParameter,
-   type Function, type FunctionParameter, type Import, type Module, type Pattern, type Publicity,
-   type Statement, type Type, type TypeAlias, type Variant, AddFloat, AddInt, And, Assert,
-   Assignment, Attribute, BigOption, BinaryOperator, BinaryOption, BitString, BitStringOption, Block,
-   Call, Case, Clause, Concatenate, Constant, CustomType, Definition, Discarded, DivFloat, DivInt,
-   Eq, Expression, Field, FieldAccess, Float, FloatOption, Fn, FnCapture, FnParameter, Function,
-   FunctionParameter, FunctionType, GtEqFloat, GtEqInt, GtFloat, GtInt, Import, Int, IntOption, Let,
-   LittleOption, LtEqFloat, LtEqInt, LtFloat, LtInt, Module, MultFloat, MultInt, Named, NamedType,
-   NativeOption, NegateBool, NegateInt, NotEq, Or, Panic, PatternAssignment, PatternBitString,
-   PatternConcatenate, PatternConstructor, PatternDiscard, PatternFloat, PatternInt, PatternList,
-   PatternString, PatternTuple, PatternVariable, Pipe, Private, Public, RecordUpdate, RemainderInt,
-   SignedOption, SizeOption, SizeValueOption, String, SubFloat, SubInt, Todo, Tuple, TupleIndex,
-   TupleType, TypeAlias, UnitOption, UnsignedOption, Use, Utf16CodepointOption, Utf16Option,
-   Utf32CodepointOption, Utf32Option, Utf8CodepointOption, Utf8Option, Variable, VariableType,
-   Variant,
-}
+import glance as g
 import glam/doc.{type Document}
 import glance_printer_bal/internal/doc_extras.{
    comma_separated_in_parentheses, nbsp, nest, trailing_comma,
@@ -26,8 +9,8 @@ import glance_printer_bal/internal/doc_extras.{
 import gleam/int
 
 /// Pretty print a glance module
-pub fn print(module module: Module) -> String {
-   let Module(
+pub fn print(module module: g.Module) -> String {
+   let g.Module(
       imports,
       custom_types,
       type_aliases,
@@ -63,16 +46,19 @@ pub fn print(module module: Module) -> String {
    <> "\n"
 }
 
-fn pretty_definition(definition: Definition(inner), inner_to_doc: fn(inner) -> Document) -> Document {
-   let Definition(attributes, definition) = definition
+fn pretty_definition(
+   definition: g.Definition(inner),
+   inner_to_doc: fn(inner) -> Document,
+) -> Document {
+   let g.Definition(attributes, definition) = definition
    attributes
    |> list.map(pretty_attribute)
    |> list.append([inner_to_doc(definition)])
    |> doc.join(with: doc.line)
 }
 
-fn pretty_attribute(attribute: Attribute) -> Document {
-   let Attribute(name, arguments) = attribute
+fn pretty_attribute(attribute: g.Attribute) -> Document {
+   let g.Attribute(name, arguments) = attribute
    let arguments =
       arguments
       |> list.map(pretty_expression)
@@ -82,8 +68,8 @@ fn pretty_attribute(attribute: Attribute) -> Document {
 }
 
 /// Pretty print a top level function.
-fn pretty_function(function: Definition(Function)) -> Document {
-   use Function(name, publicity, parameters, return, statements, _) <- pretty_definition(function)
+fn pretty_function(function: g.Definition(g.Function)) -> Document {
+   use g.Function(name, publicity, parameters, return, statements, _) <- pretty_definition(function)
 
    let parameters =
       parameters
@@ -109,8 +95,8 @@ fn pretty_function(function: Definition(Function)) -> Document {
 
 // Pretty print a parameter of a top level function
 // For printing an anonymous function paramater, see `pretty_fn_parameter`
-fn pretty_function_parameter(parameter: FunctionParameter) -> Document {
-   let FunctionParameter(label, name, type_) = parameter
+fn pretty_function_parameter(parameter: g.FunctionParameter) -> Document {
+   let g.FunctionParameter(label, name, type_) = parameter
    let label = case label {
       Some(l) -> doc.from_string(l <> " ")
       None -> doc.empty
@@ -121,13 +107,13 @@ fn pretty_function_parameter(parameter: FunctionParameter) -> Document {
 }
 
 /// Pretty print a statement
-fn pretty_statement(statement: Statement) -> Document {
+fn pretty_statement(statement: g.Statement) -> Document {
    case statement {
-      Expression(expression) -> pretty_expression(expression)
-      Assignment(kind, pattern, annotation, value) -> {
+      g.Expression(expression) -> pretty_expression(expression)
+      g.Assignment(kind, pattern, annotation, value) -> {
          let let_declaration = case kind {
-            Let -> doc.from_string("let ")
-            Assert -> doc.from_string("let assert ")
+            g.Let -> doc.from_string("let ")
+            g.Assert -> doc.from_string("let assert ")
          }
 
          [
@@ -139,7 +125,7 @@ fn pretty_statement(statement: Statement) -> Document {
          ]
          |> doc.concat
       }
-      Use(patterns, function) -> {
+      g.Use(patterns, function) -> {
          let patterns =
             patterns
             |> list.map(pretty_pattern)
@@ -152,44 +138,44 @@ fn pretty_statement(statement: Statement) -> Document {
 }
 
 /// Pretty print a "pattern" (anything that could go in a pattern match branch)
-fn pretty_pattern(pattern: Pattern) -> Document {
+fn pretty_pattern(pattern: g.Pattern) -> Document {
    case pattern {
       // Basic patterns
-      PatternInt(val) | PatternFloat(val) | PatternVariable(val) -> doc.from_string(val)
+      g.PatternInt(val) | g.PatternFloat(val) | g.PatternVariable(val) -> doc.from_string(val)
 
-      PatternString(val) -> doc.from_string("\"" <> val <> "\"")
+      g.PatternString(val) -> doc.from_string("\"" <> val <> "\"")
 
       // A discarded value should start with an underscore
-      PatternDiscard(val) -> doc.from_string("_" <> val)
+      g.PatternDiscard(val) -> doc.from_string("_" <> val)
 
       // A tuple pattern
-      PatternTuple(elements) ->
+      g.PatternTuple(elements) ->
          elements
          |> list.map(pretty_pattern)
          |> pretty_tuple
 
       // A list pattern
-      PatternList(elements, tail) ->
+      g.PatternList(elements, tail) ->
          pretty_list(
             of: list.map(elements, pretty_pattern),
             with_tail: option.map(tail, pretty_pattern),
          )
 
       // Pattern for renaming something with "as"
-      PatternAssignment(pattern, name) -> {
+      g.PatternAssignment(pattern, name) -> {
          [pretty_pattern(pattern), pretty_as(Some(name))]
          |> doc.concat
       }
 
       // Pattern for pulling off the front end of a string
-      PatternConcatenate(left, right) -> {
+      g.PatternConcatenate(left, right) -> {
          [doc.from_string("\"" <> left <> "\" <> "), pretty_assignment_name(right)]
          |> doc.concat
       }
 
-      PatternBitString(segments) -> pretty_bitstring(segments, pretty_pattern)
+      g.PatternBitString(segments) -> pretty_bitstring(segments, pretty_pattern)
 
-      PatternConstructor(module, constructor, arguments, with_spread) -> {
+      g.PatternConstructor(module, constructor, arguments, with_spread) -> {
          let module =
             module
             |> option.map(doc.from_string)
@@ -211,8 +197,8 @@ fn pretty_pattern(pattern: Pattern) -> Document {
 }
 
 // Pretty print a constant
-fn pretty_constant(constant: Definition(Constant)) -> Document {
-   use Constant(name, publicity, annotation, value) <- pretty_definition(constant)
+fn pretty_constant(constant: g.Definition(g.Constant)) -> Document {
+   use g.Constant(name, publicity, annotation, value) <- pretty_definition(constant)
 
    [
       pretty_public(publicity),
@@ -226,7 +212,7 @@ fn pretty_constant(constant: Definition(Constant)) -> Document {
 }
 
 /// Pretty print a block of statements
-fn pretty_block(of statements: List(Statement)) -> Document {
+fn pretty_block(of statements: List(g.Statement)) -> Document {
    // Statements are separated by a single line
    let statements =
       statements
@@ -273,29 +259,29 @@ fn pretty_list(of elements: List(Document), with_tail tail: Option(Document)) ->
 
 // Expression -------------------------------------
 
-fn pretty_expression(expression: Expression) -> Document {
+fn pretty_expression(expression: g.Expression) -> Document {
    case expression {
       // Int, Float and Variable simply print as their string value
-      Int(str) | Float(str) | Variable(str) -> doc.from_string(str)
+      g.Int(str) | g.Float(str) | g.Variable(str) -> doc.from_string(str)
 
       // A string literal needs to bee wrapped in quotes
-      String(val) -> doc.from_string("\"" <> val <> "\"")
+      g.String(val) -> doc.from_string("\"" <> val <> "\"")
 
       // Negate int gets a - in front
-      NegateInt(expr) ->
+      g.NegateInt(expr) ->
          [doc.from_string("-"), pretty_expression(expr)]
          |> doc.concat
 
       // Negate bool gets a ! in front
-      NegateBool(expr) ->
+      g.NegateBool(expr) ->
          [doc.from_string("!"), pretty_expression(expr)]
          |> doc.concat
 
       // A block of statements
-      Block(statements) -> pretty_block(of: statements)
+      g.Block(statements) -> pretty_block(of: statements)
 
       // Pretty print a panic
-      Panic(msg) -> {
+      g.Panic(msg) -> {
          case msg {
             Some(str) -> doc.from_string("panic as \"" <> str <> "\"")
             None -> doc.from_string("panic")
@@ -303,7 +289,7 @@ fn pretty_expression(expression: Expression) -> Document {
       }
 
       // Pretty print a todo
-      Todo(msg) -> {
+      g.Todo(msg) -> {
          case msg {
             Some(str) -> doc.from_string("todo as \"" <> str <> "\"")
             None -> doc.from_string("todo")
@@ -311,20 +297,20 @@ fn pretty_expression(expression: Expression) -> Document {
       }
 
       // Pretty print a tuple
-      Tuple(expressions) ->
+      g.Tuple(expressions) ->
          expressions
          |> list.map(pretty_expression)
          |> pretty_tuple
 
       // Pretty print a list
-      glance.List(elements, rest) ->
+      g.List(elements, rest) ->
          pretty_list(list.map(elements, pretty_expression), option.map(rest, pretty_expression))
 
       // Pretty print a function
-      Fn(arguments, return, body) -> pretty_fn(arguments, return, body)
+      g.Fn(arguments, return, body) -> pretty_fn(arguments, return, body)
 
       // Pretty print a record update expression
-      RecordUpdate(module, constructor, record, fields) -> {
+      g.RecordUpdate(module, constructor, record, fields) -> {
          let module = case module {
             Some(str) -> doc.from_string(str)
             None -> doc.empty
@@ -347,12 +333,12 @@ fn pretty_expression(expression: Expression) -> Document {
          |> doc.concat
       }
 
-      FieldAccess(container, label) -> {
+      g.FieldAccess(container, label) -> {
          [pretty_expression(container), doc.from_string("." <> label)]
          |> doc.concat
       }
 
-      Call(function, arguments) -> {
+      g.Call(function, arguments) -> {
          let arguments =
             arguments
             |> list.map(pretty_field(_, pretty_expression))
@@ -361,12 +347,12 @@ fn pretty_expression(expression: Expression) -> Document {
          |> doc.concat
       }
 
-      TupleIndex(tuple, index) -> {
+      g.TupleIndex(tuple, index) -> {
          [pretty_expression(tuple), doc.from_string("." <> int.to_string(index))]
          |> doc.concat
       }
 
-      FnCapture(label, function, arguments_before, arguments_after) -> {
+      g.FnCapture(label, function, arguments_before, arguments_after) -> {
          let arguments_before = list.map(arguments_before, pretty_field(_, pretty_expression))
          let arguments_after = list.map(arguments_after, pretty_field(_, pretty_expression))
          let placeholder = case label {
@@ -382,8 +368,8 @@ fn pretty_expression(expression: Expression) -> Document {
          [pretty_expression(function), in_parens]
          |> doc.concat
       }
-      BitString(segments) -> pretty_bitstring(segments, pretty_expression)
-      Case(subjects, clauses) -> {
+      g.BitString(segments) -> pretty_bitstring(segments, pretty_expression)
+      g.Case(subjects, clauses) -> {
          let subjects =
             subjects
             |> list.map(pretty_expression)
@@ -391,7 +377,7 @@ fn pretty_expression(expression: Expression) -> Document {
 
          let clauses =
             {
-               use Clause(lolo_patterns, guard, body) <- list.map(clauses)
+               use g.Clause(lolo_patterns, guard, body) <- list.map(clauses)
 
                let lolo_patterns = list.map(lolo_patterns, list.map(_, pretty_pattern))
 
@@ -416,7 +402,7 @@ fn pretty_expression(expression: Expression) -> Document {
          |> nest
          |> doc.append_docs([doc.line, doc.from_string("}")])
       }
-      BinaryOperator(name, left, right) -> {
+      g.BinaryOperator(name, left, right) -> {
          [
             pretty_expression(left),
             nbsp(),
@@ -429,36 +415,36 @@ fn pretty_expression(expression: Expression) -> Document {
    }
 }
 
-fn pretty_binary_operator(operator: BinaryOperator) -> Document {
+fn pretty_binary_operator(operator: g.BinaryOperator) -> Document {
    case operator {
-      And -> doc.from_string("&&")
-      Or -> doc.from_string("||")
-      Eq -> doc.from_string("==")
-      NotEq -> doc.from_string("!=")
-      LtInt -> doc.from_string("<")
-      LtEqInt -> doc.from_string("<=")
-      LtFloat -> doc.from_string("<.")
-      LtEqFloat -> doc.from_string("<=.")
-      GtEqInt -> doc.from_string(">=")
-      GtInt -> doc.from_string(">")
-      GtEqFloat -> doc.from_string(">=.")
-      GtFloat -> doc.from_string(">.")
-      Pipe -> doc.from_string("|>")
-      AddInt -> doc.from_string("+")
-      AddFloat -> doc.from_string("+.")
-      SubInt -> doc.from_string("-")
-      SubFloat -> doc.from_string("-.")
-      MultInt -> doc.from_string("*")
-      MultFloat -> doc.from_string("*.")
-      DivInt -> doc.from_string("/")
-      DivFloat -> doc.from_string("/.")
-      RemainderInt -> doc.from_string("%")
-      Concatenate -> doc.from_string("<>")
+      g.And -> doc.from_string("&&")
+      g.Or -> doc.from_string("||")
+      g.Eq -> doc.from_string("==")
+      g.NotEq -> doc.from_string("!=")
+      g.LtInt -> doc.from_string("<")
+      g.LtEqInt -> doc.from_string("<=")
+      g.LtFloat -> doc.from_string("<.")
+      g.LtEqFloat -> doc.from_string("<=.")
+      g.GtEqInt -> doc.from_string(">=")
+      g.GtInt -> doc.from_string(">")
+      g.GtEqFloat -> doc.from_string(">=.")
+      g.GtFloat -> doc.from_string(">.")
+      g.Pipe -> doc.from_string("|>")
+      g.AddInt -> doc.from_string("+")
+      g.AddFloat -> doc.from_string("+.")
+      g.SubInt -> doc.from_string("-")
+      g.SubFloat -> doc.from_string("-.")
+      g.MultInt -> doc.from_string("*")
+      g.MultFloat -> doc.from_string("*.")
+      g.DivInt -> doc.from_string("/")
+      g.DivFloat -> doc.from_string("/.")
+      g.RemainderInt -> doc.from_string("%")
+      g.Concatenate -> doc.from_string("<>")
    }
 }
 
 fn pretty_bitstring(
-   segments: List(#(as_doc, List(BitStringSegmentOption(as_doc)))),
+   segments: List(#(as_doc, List(g.BitStringSegmentOption(as_doc)))),
    to_doc: fn(as_doc) -> Document,
 ) -> Document {
    let segments =
@@ -484,36 +470,40 @@ fn pretty_bitstring(
 }
 
 fn pretty_bitstring_option(
-   bitstring_option: BitStringSegmentOption(as_doc),
+   bitstring_option: g.BitStringSegmentOption(as_doc),
    fun: fn(as_doc) -> Document,
 ) -> Document {
    case bitstring_option {
-      BinaryOption -> doc.from_string("binary")
-      IntOption -> doc.from_string("int")
-      FloatOption -> doc.from_string("float")
-      BitStringOption -> doc.from_string("bit_string")
-      Utf8Option -> doc.from_string("utf8")
-      Utf16Option -> doc.from_string("utf16")
-      Utf32Option -> doc.from_string("utf32")
-      Utf8CodepointOption -> doc.from_string("utf8_codepoint")
-      Utf16CodepointOption -> doc.from_string("utf16_codepoint")
-      Utf32CodepointOption -> doc.from_string("utf32_codepoint")
-      SignedOption -> doc.from_string("signed")
-      UnsignedOption -> doc.from_string("unsigned")
-      BigOption -> doc.from_string("big")
-      LittleOption -> doc.from_string("little")
-      NativeOption -> doc.from_string("native")
-      SizeValueOption(n) ->
+      g.BinaryOption -> doc.from_string("binary")
+      g.IntOption -> doc.from_string("int")
+      g.FloatOption -> doc.from_string("float")
+      g.BitStringOption -> doc.from_string("bit_string")
+      g.Utf8Option -> doc.from_string("utf8")
+      g.Utf16Option -> doc.from_string("utf16")
+      g.Utf32Option -> doc.from_string("utf32")
+      g.Utf8CodepointOption -> doc.from_string("utf8_codepoint")
+      g.Utf16CodepointOption -> doc.from_string("utf16_codepoint")
+      g.Utf32CodepointOption -> doc.from_string("utf32_codepoint")
+      g.SignedOption -> doc.from_string("signed")
+      g.UnsignedOption -> doc.from_string("unsigned")
+      g.BigOption -> doc.from_string("big")
+      g.LittleOption -> doc.from_string("little")
+      g.NativeOption -> doc.from_string("native")
+      g.SizeValueOption(n) ->
          [doc.from_string("size("), fun(n), doc.from_string(")")]
          |> doc.concat
-      SizeOption(n) -> doc.from_string(int.to_string(n))
-      UnitOption(n) -> doc.from_string("unit(" <> int.to_string(n) <> ")")
+      g.SizeOption(n) -> doc.from_string(int.to_string(n))
+      g.UnitOption(n) -> doc.from_string("unit(" <> int.to_string(n) <> ")")
    }
 }
 
 // Pretty print an anonymous functions.
 // For a top level function, see `pretty_function`
-fn pretty_fn(arguments: List(FnParameter), return: Option(Type), body: List(Statement)) -> Document {
+fn pretty_fn(
+   arguments: List(g.FnParameter),
+   return: Option(g.Type),
+   body: List(g.Statement),
+) -> Document {
    let arguments =
       arguments
       |> list.map(pretty_fn_parameter)
@@ -541,16 +531,16 @@ fn pretty_fn(arguments: List(FnParameter), return: Option(Type), body: List(Stat
 
 // Pretty print an anonymous function parameter.
 // For a top level function parameter, see `pretty_function_parameter`
-fn pretty_fn_parameter(fn_parameter: FnParameter) -> Document {
-   let FnParameter(name, type_) = fn_parameter
+fn pretty_fn_parameter(fn_parameter: g.FnParameter) -> Document {
+   let g.FnParameter(name, type_) = fn_parameter
    [pretty_assignment_name(name), pretty_type_annotation(type_)]
    |> doc.concat
 }
 
 // Type Alias -------------------------------------
 
-fn pretty_type_alias(type_alias: Definition(TypeAlias)) -> Document {
-   use TypeAlias(name, publicity, parameters, aliased) <- pretty_definition(type_alias)
+fn pretty_type_alias(type_alias: g.Definition(g.TypeAlias)) -> Document {
+   use g.TypeAlias(name, publicity, parameters, aliased) <- pretty_definition(type_alias)
 
    let parameters = case parameters {
       [] -> doc.empty
@@ -572,9 +562,9 @@ fn pretty_type_alias(type_alias: Definition(TypeAlias)) -> Document {
 
 // Type -------------------------------------------------
 
-fn pretty_type(type_: Type) -> Document {
+fn pretty_type(type_: g.Type) -> Document {
    case type_ {
-      NamedType(name, module, parameters) -> {
+      g.NamedType(name, module, parameters) -> {
          let parameters = case parameters {
             [] -> doc.empty
             _ ->
@@ -590,11 +580,11 @@ fn pretty_type(type_: Type) -> Document {
          |> doc.append(doc.from_string(name))
          |> doc.append(parameters)
       }
-      TupleType(elements) ->
+      g.TupleType(elements) ->
          elements
          |> list.map(pretty_type)
          |> pretty_tuple
-      FunctionType(parameters, return) -> {
+      g.FunctionType(parameters, return) -> {
          doc.from_string("fn")
          |> doc.append(
             parameters
@@ -603,12 +593,12 @@ fn pretty_type(type_: Type) -> Document {
          )
          |> doc.append(pretty_return_signature(Some(return)))
       }
-      VariableType(name) -> doc.from_string(name)
+      g.VariableType(name) -> doc.from_string(name)
    }
 }
 
-fn pretty_custom_type(type_: Definition(CustomType)) -> Document {
-   use CustomType(name, publicity, opaque_, parameters, variants) <- pretty_definition(type_)
+fn pretty_custom_type(type_: g.Definition(g.CustomType)) -> Document {
+   use g.CustomType(name, publicity, opaque_, parameters, variants) <- pretty_definition(type_)
 
    // Opaque or not
    let opaque_ = case opaque_ {
@@ -648,16 +638,16 @@ fn pretty_custom_type(type_: Definition(CustomType)) -> Document {
    |> doc.concat
 }
 
-fn pretty_variant(variant: Variant) -> Document {
-   let Variant(name, fields) = variant
+fn pretty_variant(variant: g.Variant) -> Document {
+   let g.Variant(name, fields) = variant
    fields
    |> list.map(pretty_field(_, pretty_type))
    |> comma_separated_in_parentheses
    |> doc.prepend(doc.from_string(name))
 }
 
-fn pretty_field(field: Field(a), a_to_doc: fn(a) -> Document) -> Document {
-   let Field(label, type_) = field
+fn pretty_field(field: g.Field(a), a_to_doc: fn(a) -> Document) -> Document {
+   let g.Field(label, type_) = field
    case label {
       Some(l) -> doc.from_string(l <> ": ")
       None -> doc.empty
@@ -668,8 +658,8 @@ fn pretty_field(field: Field(a), a_to_doc: fn(a) -> Document) -> Document {
 // Imports --------------------------------------------
 
 // Pretty print an import statement
-fn pretty_import(import_: Definition(Import)) -> Document {
-   use Import(module, alias, unqualified_types, unqualified_values) <- pretty_definition(import_)
+fn pretty_import(import_: g.Definition(g.Import)) -> Document {
+   use g.Import(module, alias, unqualified_types, unqualified_values) <- pretty_definition(import_)
 
    let unqualified_values =
       unqualified_values
@@ -701,24 +691,24 @@ fn pretty_import(import_: Definition(Import)) -> Document {
 // --------- Little Pieces -------------------------------
 
 // Prints the pub keyword
-fn pretty_public(publicity: Publicity) -> Document {
+fn pretty_public(publicity: g.Publicity) -> Document {
    case publicity {
-      Public -> doc.from_string("pub ")
-      Private -> doc.empty
+      g.Public -> doc.from_string("pub ")
+      g.Private -> doc.empty
    }
 }
 
 // Simply prints an assignment name normally or prefixed with
 // an underscore if it is unused
-fn pretty_assignment_name(assignment_name: AssignmentName) -> Document {
+fn pretty_assignment_name(assignment_name: g.AssignmentName) -> Document {
    case assignment_name {
-      Named(str) -> doc.from_string(str)
-      Discarded(str) -> doc.from_string("_" <> str)
+      g.Named(str) -> doc.from_string(str)
+      g.Discarded(str) -> doc.from_string("_" <> str)
    }
 }
 
 // Pretty prints an optional type annotation
-fn pretty_type_annotation(type_: Option(Type)) -> Document {
+fn pretty_type_annotation(type_: Option(g.Type)) -> Document {
    case type_ {
       Some(t) ->
          [doc.from_string(": "), pretty_type(t)]
@@ -728,7 +718,7 @@ fn pretty_type_annotation(type_: Option(Type)) -> Document {
 }
 
 // Pretty return signature
-fn pretty_return_signature(type_: Option(Type)) -> Document {
+fn pretty_return_signature(type_: Option(g.Type)) -> Document {
    case type_ {
       Some(t) ->
          [doc.from_string(" -> "), pretty_type(t)]
