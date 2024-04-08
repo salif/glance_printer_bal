@@ -3,6 +3,7 @@
 //// to do with glance.
 
 import glam/doc.{type Document}
+import gleam/option.{type Option, None, Some}
 
 /// The indent for nesting is always 2 spaces, so we don't
 /// need to keep typing it all the time.
@@ -37,4 +38,25 @@ pub fn comma_separated_in_parentheses(arguments: List(Document)) -> Document {
    |> nest
    |> doc.append_docs([trailing_comma(), doc.from_string(")")])
    |> doc.group
+}
+
+pub fn gen_uimport(
+   mp: String,
+   name: String,
+   alias: Option(String),
+   ty: String,
+   op: String,
+) -> Document {
+   doc.from_string(
+      ty
+      <> case alias {
+         Some(val) -> val
+         None -> name
+      }
+      <> op
+      <> mp
+      <> ":"
+      <> name
+      <> ";",
+   )
 }
