@@ -34,13 +34,27 @@ dependencies = [
 
 [[package]]
 org = "ballet"
-name = "gen"
+name = "srcs"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "io"}
 ]
 modules = [
-	{org = "ballet", packageName = "gen", moduleName = "gen"},
-	{org = "ballet", packageName = "gen", moduleName = "gen.hello_world"}
+	{org = "ballet", packageName = "srcs", moduleName = "srcs"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.gleam_"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.gleam_bytes_builder"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.gleam_io"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_assignments"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_bools"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_discard"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_floats"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_hello_world"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_ints"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_mod"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_num_formats"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_strings"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_type_aliases"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_type_imports"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_unqualified"}
 ]
 

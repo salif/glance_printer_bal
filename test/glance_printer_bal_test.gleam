@@ -1,6 +1,7 @@
 import glance_printer_bal as gpl
 import gleam/list
 import gleam/string
+import glance
 import simplifile
 import testbldr
 
@@ -23,13 +24,15 @@ fn file_based_tests() {
       |> list.first
    use <- testbldr.named(test_name)
    let assert Ok(gen_file) =
-      simplifile.read("./test/gen/modules/" <> test_name <> "/" <> test_name <> ".bal")
+      simplifile.read(
+         "./test/gen/modules/" <> "srcs_" <> test_name <> "/" <> "srcs_" <> test_name <> ".bal",
+      )
    identity(src_file, gen_file)
 }
 
 fn identity(src: String, gen: String) {
-   let assert Ok(module) = gpl.src(src)
-   let printed: String = gpl.print(module)
+   let assert Ok(module) = glance.module(src)
+   let printed: String = gpl.print(module, "srcs")
    case printed == gen {
       True -> testbldr.Pass
       False -> {

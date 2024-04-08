@@ -7,7 +7,7 @@ import glam/doc.{type Document}
 /// The indent for nesting is always 2 spaces, so we don't
 /// need to keep typing it all the time.
 pub fn nest(input: Document) -> Document {
-   doc.nest(input, by: 2)
+   doc.nest(input, by: 4)
 }
 
 /// A comma that only prints when the 
@@ -19,6 +19,10 @@ pub fn trailing_comma() -> Document {
 /// A non breaking space
 pub fn nbsp() -> Document {
    doc.from_string(" ")
+}
+
+pub fn semicolon() -> Document {
+   doc.from_string(";")
 }
 
 /// Take a list of documents, separate them with commas, and wrap

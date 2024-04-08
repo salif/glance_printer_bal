@@ -1,5 +1,7 @@
 # Changelog
 
+## Not for glance_printer_bal
+
 ## Unreleased
 
 ## v1.1.0 - 1 February 2024

@@ -1,20 +1,16 @@
-description = "Turn glance AST into a ballerina src string"
+description = "Turn glance AST into a Ballerina source code"
 gleam = ">= 0.32.0"
 name = "glance_printer_bal"
-version = "1.0.0"
+version = "0.1.0"
 
-# Fill out these fields if you intend to generate HTML documentation or publish
-# your project to the Hex package manager.
-#
 licences = ["Apache-2.0"]
 repository = {type = "codeberg", user = "salif", repo = "glance_printer_bal"}
-# links = [{ title = "Website", href = "https://gleam.run" }]
 
 [dependencies]
 glam = "~> 1.0"
 glance = "~> 0.8.1"
 gleam_stdlib = "~> 0.34 or ~> 1.0"
-testbldr = "~> 1.1"
-simplifile = "~> 1.6"
 
 [dev-dependencies]
+simplifile = "~> 1.6"
+testbldr = "~> 1.1"
