@@ -48,6 +48,7 @@ modules = [
 	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_bools"},
 	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_discard"},
 	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_floats"},
+	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_functions"},
 	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_hello_world"},
 	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_ints"},
 	{org = "ballet", packageName = "srcs", moduleName = "srcs.srcs_mod"},

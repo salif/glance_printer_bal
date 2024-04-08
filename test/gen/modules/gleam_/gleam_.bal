@@ -1,8 +1,9 @@
 public type Ignore ();
 
-public type MainReturn error?;
-
-public function mainReturn(any r) returns MainReturn {
+public function mainReturn(any|error r) returns error? {
+    if r is error {
+        return r;
+    }
     return ();
 }
 

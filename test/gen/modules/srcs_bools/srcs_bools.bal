@@ -3,7 +3,7 @@ import srcs.gleam_io as io;
 
 type gleam_ignore gleam_:Ignore;
 
-public function main() returns gleam_:MainReturn {
+public function main() returns error? {
     _ = io:debug(true && false);
     _ = io:debug(true && true);
     _ = io:debug(false || false);

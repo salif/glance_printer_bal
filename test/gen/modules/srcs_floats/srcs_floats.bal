@@ -3,7 +3,7 @@ import srcs.gleam_io as io;
 
 type gleam_ignore gleam_:Ignore;
 
-public function main() returns gleam_:MainReturn {
+public function main() returns error? {
     _ = io:debug(1.0 + 1.5);
     _ = io:debug(5.0 - 1.5);
     _ = io:debug(gleam_:divideFloat(5.0, 2.5));

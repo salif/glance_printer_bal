@@ -7,7 +7,7 @@ import glam/doc.{type Document}
 /// The indent for nesting is always 2 spaces, so we don't
 /// need to keep typing it all the time.
 pub fn nest(input: Document) -> Document {
-   doc.nest(input, by: 4)
+   doc.nest(input, 4)
 }
 
 /// A comma that only prints when the 
@@ -28,7 +28,7 @@ pub fn semicolon() -> Document {
 /// Take a list of documents, separate them with commas, and wrap
 /// them in parentheses. Provides a trailing comma on breaking.
 pub fn comma_separated_in_parentheses(arguments: List(Document)) -> Document {
-   let comma_separated_arguments =
+   let comma_separated_arguments: Document =
       arguments
       |> doc.concat_join([doc.from_string(","), doc.space])
 
