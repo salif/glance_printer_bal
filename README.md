@@ -5,6 +5,8 @@
 
 Turn glance AST into a Ballerina source code.
 
+This is experimental code, work in progress.
+
 ## Installation
 
 If available on Hex this package can be added to your Gleam project:
@@ -18,6 +20,7 @@ gleam add glance_printer_bal
 - unqualified imports
 - 0b and 0o number formats
 - variable reassigning
+- blocks
 - everything marked with TODO or panic in this repo
 
 and its documentation can be found at <https://hexdocs.pm/glance_printer_bal>.

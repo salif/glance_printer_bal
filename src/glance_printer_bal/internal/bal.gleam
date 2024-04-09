@@ -38,6 +38,10 @@ pub const k_function: String = "function"
 
 pub const k_import_: String = "import "
 
+pub const k_const_: String = "const "
+
+pub const k_arr_s: String = "[*]"
+
 pub const max: Int = 101
 
 pub fn bal_var(str: String) -> String {
